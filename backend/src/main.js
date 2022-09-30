@@ -4,18 +4,30 @@ import express from "express";
 import life360 from "life360-node-api";
 import cors from "cors";
 
+const login = async () => {
+  let client = await life360.login(
+    process.env.LIFE360_EMAIL,
+    process.env.LIFE360_PASSWORD
+  );
+  return client;
+};
+
+let client = await login();
+
 const getMembersRoute = async (req, res) => {
   res.json(await getData());
 };
 
 const getData = async () => {
-  let client = await life360.login(
-    process.env.LIFE360_EMAIL,
-    process.env.LIFE360_PASSSWORD
-  );
   //console.log(client);
 
-  let circles = await client.listCircles();
+  let circles = [];
+  try {
+    circles = await client.listCircles();
+  } catch (e) {
+    client = await login();
+    circles = await client.listCircles();
+  }
 
   for (const circle of circles) {
     //console.log(circle.name);
